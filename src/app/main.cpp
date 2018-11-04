@@ -9,8 +9,8 @@
 */
 
 typedef enum {
-  APP_TASK_LED1_PRIO = 4,
-  APP_TASK_LED2_PRIO
+  LED_RED_PRIO = 4,
+  LED_GREEN_PRIO
 } taskPriorities_t;
 
 /*
@@ -19,11 +19,11 @@ typedef enum {
 *********************************************************************************************************
 */
 
-#define  APP_TASK_LED1_STK_SIZE              256
-#define  APP_TASK_LED2_STK_SIZE              256
+#define  LED_RED_STK_SIZE              256
+#define  LED_GREEN_STK_SIZE            256
 
-static OS_STK appTaskLED1Stk[APP_TASK_LED1_STK_SIZE];
-static OS_STK appTaskLED2Stk[APP_TASK_LED2_STK_SIZE];
+static OS_STK ledRedStk[LED_RED_STK_SIZE];
+static OS_STK ledGreenStk[LED_GREEN_STK_SIZE];
 
 /*
 *********************************************************************************************************
@@ -31,9 +31,10 @@ static OS_STK appTaskLED2Stk[APP_TASK_LED2_STK_SIZE];
 *********************************************************************************************************
 */
 
-static void appTaskLED1(void *pdata);
-static void appTaskLED2(void *pdata);
+static void appTaskLedRed(void *pdata);
+static void appTaskLedGreen(void *pdata);
 
+static void ledToggle(DigitalOut led);
 /*
 *********************************************************************************************************
 *                                            GLOBAL TYPES AND VARIABLES 
@@ -51,15 +52,15 @@ int main() {
   OSInit();                                                   
 
   /* Create the tasks */
-  OSTaskCreate(appTaskLED1,                               
+  OSTaskCreate(appTaskLedRed,                               
                (void *)0,
-               (OS_STK *)&appTaskLED1Stk[APP_TASK_LED1_STK_SIZE - 1],
-               APP_TASK_LED1_PRIO);
+               (OS_STK *)&ledRedStk[LED_RED_STK_SIZE - 1],
+               LED_RED_PRIO);
   
-  OSTaskCreate(appTaskLED2,                               
+  OSTaskCreate(appTaskLedGreen,                               
                (void *)0,
-               (OS_STK *)&appTaskLED2Stk[APP_TASK_LED2_STK_SIZE - 1],
-               APP_TASK_LED2_PRIO);
+               (OS_STK *)&ledGreenStk[LED_GREEN_STK_SIZE - 1],
+               LED_GREEN_PRIO);
 
   
   /* Start the OS */
@@ -75,29 +76,31 @@ int main() {
 *********************************************************************************************************
 */
 
-static void appTaskLED1(void *pdata) {
+static void appTaskLedRed(void *pdata) {
   DigitalOut red(LED_RED);
   
   /* Start the OS ticker -- must be done in the highest priority task */
   SysTick_Config(SystemCoreClock / OS_TICKS_PER_SEC);
   
+  red = 1;
+
   /* Task main loop */
   while (true) {
-    red = 1;
-    OSTimeDlyHMSM(0,0,0,500);
-    red = 0;
+    ledToggle(red);
     OSTimeDlyHMSM(0,0,0,500);
   }
 }
 
-static void appTaskLED2(void *pdata) {
+static void appTaskLedGreen(void *pdata) {
   DigitalOut green(LED_GREEN);
 
+  green = 0;
   while (true) {
-    green = 0;		
-    OSTimeDlyHMSM(0,0,0,500);
-    green = 1;
+    ledToggle(green);	
     OSTimeDlyHMSM(0,0,0,500);
   } 
 }
 
+static void ledToggle(DigitalOut led) {
+  led = 1 - led;
+}
