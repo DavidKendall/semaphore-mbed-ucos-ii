@@ -56,7 +56,8 @@ static uint32_t total = 0;
 static uint32_t count1 = 0;
 static uint32_t count2 = 0;
 
-static OS_EVENT *lcdSem;
+static OS_EVENT *lcdSem1;
+static OS_EVENT *lcdSem2;
 /*
 *********************************************************************************************************
 *                                            GLOBAL FUNCTION DEFINITIONS
@@ -93,7 +94,8 @@ int main() {
                APP_TASK_COUNT2_PRIO);
 
   /* Create the semaphore */
-  lcdSem = OSSemCreate(1);
+  lcdSem1 = OSSemCreate(1);
+  lcdSem2 = OSSemCreate(0);
 
   
   /* Start the OS */
@@ -141,12 +143,13 @@ static void appTaskLedGreen(void *pdata) {
 static void appTaskCOUNT1(void *pdata) {  
   uint8_t status;
 	
+  //OSTimeDlyHMSM(0,0,0,1);
   while (true) {
-    OSSemPend(lcdSem, 0, &status);
+    OSSemPend(lcdSem1, 0, &status);
     count1 += 1;
     display(1, count1);
     total += 1;
-    status = OSSemPost(lcdSem);
+    status = OSSemPost(lcdSem2);
     if ((count1 + count2) != total) {
       flashing = true;
     }
@@ -158,11 +161,11 @@ static void appTaskCOUNT2(void *pdata) {
   uint8_t status;
 	
   while (true) {
-    OSSemPend(lcdSem, 0, &status);
+    OSSemPend(lcdSem2, 0, &status);
     count2 += 1;
     display(2, count2);
     total += 1;
-    status = OSSemPost(lcdSem);		
+    status = OSSemPost(lcdSem1);		
     if ((count1 + count2) != total) {
       flashing = true;
     }
