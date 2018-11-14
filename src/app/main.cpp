@@ -154,7 +154,6 @@ static void appTaskCOUNT1(void *pdata) {
   } 
 }
 
-
 static void appTaskCOUNT2(void *pdata) {
   uint8_t status;
 	
